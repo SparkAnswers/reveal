@@ -159,6 +159,19 @@ describe('p = 0 is unrecognizable', () => {
     expect(panels.length).toBeGreaterThanOrEqual(12);
     panels.forEach((d) => expect(d.style.transform).toBe('none'));
   });
+
+  it('advent clips every copy of the image to its own cell, so closed doors hide it', () => {
+    const { container } = renderMode('advent', { p: 0.3, days: 12 });
+    const imgs = Array.from(container.querySelectorAll('img'));
+    expect(imgs.length).toBeGreaterThanOrEqual(12);
+    imgs.forEach((img) => {
+      const box = img.parentElement!;
+      expect(box.style.overflow).toBe('hidden');
+      // The clip box is exactly one cell, not the whole stage.
+      expect(parseFloat(box.style.width)).toBeLessThan(320);
+      expect(parseFloat(box.style.height)).toBeLessThan(200);
+    });
+  });
 });
 
 describe('instant', () => {

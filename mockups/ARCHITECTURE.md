@@ -24,7 +24,7 @@ Dev settings: `GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=<plugin-id>` (or `GF_DE
 
 - `p = clamp((now − start) / (reveal − start), 0, 1)`; `start` defaults to panel creation time if unset.
 - `eased = easing(p)`; easings: `linear | easeIn | easeOut | easeInOut | steps(n)`. Modes consume `eased`.
-- **`now` source:** browser clock by default; toggle **"Use dashboard time"** (`timeRange.to`) for previewing/scrubbing; `previewOverride` (0–1) forces a value in the editor. Server time is v2 (backend returns `now` to defeat clock tampering).
+- **`now` source:** browser clock by default; toggle **"Use dashboard time"** (`timeRange.to`) to look back at earlier states (capped at the real clock, so it cannot reveal early); an in-memory, editor-only preview slider forces a value in the editor. Server time is v2 (backend returns `now` to defeat clock tampering).
 - **Cadence:** `setInterval` inside the panel, period = `max(1s, (reveal − start)/1000)` clamped to ≤60 s, plus recompute on every panel render/refresh. Clear on unmount.
 - **Security, plainly:** in v1 the *full* image is in the dashboard JSON / network response. Anyone who can view the dashboard can open DevTools and see it immediately. The reveal is cosmetic. True secrecy requires v2's backend serving only a server-degraded image for the current `p`.
 

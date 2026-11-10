@@ -1,7 +1,7 @@
 # Reveal panel plugin - all targets run inside Docker. Nothing here calls npm on the host.
 #
 #   make build        production build -> ./dist
-#   make up           Grafana 12.x at http://localhost:3000 (builds first)
+#   make up           Grafana 13.x at http://localhost:3000 (builds first)
 #   make dev          webpack watch + livereload (use in a second terminal next to `make up`)
 #   make check        typecheck + lint + unit tests
 #   make validate     Grafana plugin-validator against a zip of ./dist

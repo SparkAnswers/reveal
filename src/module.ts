@@ -77,7 +77,7 @@ export const plugin = new PanelPlugin<RevealOptions>(RevealPanel).setPanelOption
       path: 'startDate',
       name: 'Start date',
       description:
-        'Set to "now" automatically when you pick a reveal date; the reveal runs from here to the reveal date. Clear it to reset to now.',
+        'Set to "now" automatically when you pick a reveal date; the reveal runs from here to the reveal date. Must be before the reveal date. Clear it to reset to now.',
       category: REVEAL,
       editor: DateTimeEditor,
       defaultValue: DEFAULT_OPTIONS.startDate,
@@ -187,7 +187,8 @@ export const plugin = new PanelPlugin<RevealOptions>(RevealPanel).setPanelOption
     .addRadio({
       path: 'timeSource',
       name: 'Time source',
-      description: 'Dashboard time follows the time picker, useful for scrubbing.',
+      description:
+        'Dashboard time follows the end of the time picker range to look back at earlier states. It never runs ahead of the real clock, and repeat schedules always use the real clock.',
       category: REVEAL,
       defaultValue: DEFAULT_OPTIONS.timeSource,
       settings: { options: timeSourceOptions },
@@ -288,6 +289,5 @@ export const plugin = new PanelPlugin<RevealOptions>(RevealPanel).setPanelOption
       name: 'Preview at',
       category: PREVIEW,
       editor: PreviewSliderEditor,
-      defaultValue: DEFAULT_OPTIONS.previewOverride,
     });
 });

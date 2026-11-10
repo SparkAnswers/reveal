@@ -6,17 +6,17 @@
 #   build    : typecheck + lint + unit tests + production webpack build
 #   dist     : FROM scratch, only /dist  -> export with
 #              docker build --target dist --output type=local,dest=./out .
-#   runtime  : Grafana 12.x with the plugin and demo provisioning baked in ->
+#   runtime  : Grafana 13.x with the plugin and demo provisioning baked in ->
 #              docker build --target runtime -t reveal-grafana .
 #
 # Build args:
 #   SKIP_CHECKS=1      skip typecheck/lint/test in the build stage
 #   GRAFANA_IMAGE      grafana | grafana-enterprise   (default: grafana)
-#   GRAFANA_VERSION    tag on hub.docker.com/r/grafana/<image> (default: 12.4.12)
+#   GRAFANA_VERSION    tag on hub.docker.com/r/grafana/<image> (default: 13.3.0)
 
 ARG NODE_IMAGE=node:22-alpine
 ARG GRAFANA_IMAGE=grafana
-ARG GRAFANA_VERSION=12.4.12
+ARG GRAFANA_VERSION=13.3.0
 
 # ---------------------------------------------------------------------------
 FROM ${NODE_IMAGE} AS deps

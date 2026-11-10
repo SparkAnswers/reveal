@@ -36,7 +36,7 @@
       "id": 1,
       "type": "sparkanswers-reveal-panel",
       "title": "Blur - the recommended default",
-      "description": "Gaussian blur from 40px down to 0 with ease-in: shapes first, details last.",
+      "description": "Gaussian blur from 40px down to 0: shapes first, details last.",
       "gridPos": {
         "h": 9,
         "w": 12,
@@ -53,17 +53,16 @@
           "bytes": 31555,
           "name": "livewire-s2.jpg"
         },
-        "startDate": "2026-10-01T00:00:00Z",
-        "revealDate": "2026-11-01T00:00:00Z",
+        "startDate": "2026-10-11T00:00:00Z",
+        "revealDate": "2027-01-19T00:00:00Z",
         "timeSource": "browser",
         "showCountdown": true,
         "animateBeforeReveal": false,
-        "previewOverride": null,
         "mode": "blur",
         "modeSettings": {
           "blurMaxPx": 40
         },
-        "easing": "easeIn",
+        "easing": "linear",
         "caption": "Here it is: the new bike!"
       },
       "fieldConfig": {
@@ -94,17 +93,16 @@
           "bytes": 27386,
           "name": "micron-mrdimm.jpg"
         },
-        "startDate": "2026-10-01T00:00:00Z",
-        "revealDate": "2026-11-01T00:00:00Z",
+        "startDate": "2026-10-11T00:00:00Z",
+        "revealDate": "2027-01-19T00:00:00Z",
         "timeSource": "browser",
         "showCountdown": true,
         "animateBeforeReveal": false,
-        "previewOverride": null,
         "mode": "pixelate",
         "modeSettings": {
           "pixelMaxSize": 40
         },
-        "easing": "easeIn",
+        "easing": "linear",
         "caption": "Here it is: the new memory!"
       },
       "fieldConfig": {
@@ -118,7 +116,7 @@
       "id": 3,
       "type": "sparkanswers-reveal-panel",
       "title": "Jigsaw - one tile per day",
-      "description": "8x5 grid, seeded order (seed derived from revealDate), one step per whole day.",
+      "description": "10x10 grid, seeded order (seed derived from revealDate), one step per whole day of the 100-day window.",
       "gridPos": {
         "h": 9,
         "w": 12,
@@ -135,17 +133,16 @@
           "bytes": 31555,
           "name": "livewire-s2.jpg"
         },
-        "startDate": "2026-10-01T00:00:00Z",
-        "revealDate": "2026-11-01T00:00:00Z",
+        "startDate": "2026-10-11T00:00:00Z",
+        "revealDate": "2027-01-19T00:00:00Z",
         "timeSource": "browser",
         "showCountdown": true,
         "animateBeforeReveal": false,
-        "previewOverride": null,
         "mode": "jigsaw",
         "modeSettings": {
           "grid": {
-            "cols": 8,
-            "rows": 5
+            "cols": 10,
+            "rows": 10
           }
         },
         "easing": "steps",
@@ -161,8 +158,8 @@
     {
       "id": 4,
       "type": "sparkanswers-reveal-panel",
-      "title": "Advent - 31 doors to November",
-      "description": "Calendar-style: door n opens on day n; the next door is highlighted.",
+      "title": "Advent - 50 doors, one every two days",
+      "description": "Calendar-style: 50 doors over a 100-day window, so a door opens every second day; the next door is highlighted.",
       "gridPos": {
         "h": 9,
         "w": 12,
@@ -179,15 +176,14 @@
           "bytes": 27386,
           "name": "micron-mrdimm.jpg"
         },
-        "startDate": "2026-10-01T00:00:00Z",
-        "revealDate": "2026-11-01T00:00:00Z",
+        "startDate": "2026-10-11T00:00:00Z",
+        "revealDate": "2027-01-19T00:00:00Z",
         "timeSource": "browser",
         "showCountdown": true,
         "animateBeforeReveal": false,
-        "previewOverride": null,
         "mode": "advent",
         "modeSettings": {
-          "doors": 31
+          "doors": 50
         },
         "easing": "steps",
         "caption": "Here it is: the new memory!"

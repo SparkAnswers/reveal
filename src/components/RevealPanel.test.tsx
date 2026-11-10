@@ -1,7 +1,8 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { PanelProps, dateTime } from '@grafana/data';
 import { RevealPanel } from './RevealPanel';
+import { setPreview } from './previewStore';
 import { DEFAULT_OPTIONS, ImageRef, RevealOptions } from '../types';
 import type { ModeProps } from '../reveal/types';
 
@@ -20,14 +21,14 @@ const NOW = Date.UTC(2026, 9, 5, 12, 0, 0);
 const PNG: ImageRef = { kind: 'dataUrl', src: 'data:image/png;base64,AAAA', mime: 'image/png' };
 const GIF: ImageRef = { kind: 'dataUrl', src: 'data:image/gif;base64,AAAA', mime: 'image/gif', name: 'a.gif' };
 
-function renderPanel(overrides: Partial<RevealOptions>, onOptionsChange?: jest.Mock) {
+function renderPanel(overrides: Partial<RevealOptions>, onOptionsChange?: jest.Mock, to = NOW) {
   const options: RevealOptions = { ...DEFAULT_OPTIONS, image: PNG, ...overrides };
   const props = {
     options,
     onOptionsChange,
     width: 400,
     height: 300,
-    timeRange: { from: dateTime(NOW - 3600_000), to: dateTime(NOW), raw: { from: 'now-1h', to: 'now' } },
+    timeRange: { from: dateTime(to - 3600_000), to: dateTime(to), raw: { from: 'now-1h', to: 'now' } },
   } as unknown as PanelProps<RevealOptions>;
   return render(<RevealPanel {...props} />);
 }
@@ -41,6 +42,9 @@ describe('RevealPanel', () => {
     delete search.editPanel;
   });
   afterEach(() => {
+    search.editPanel = '1';
+    act(() => setPreview(null));
+    delete search.editPanel;
     jest.useRealTimers();
   });
 
@@ -75,10 +79,55 @@ describe('RevealPanel', () => {
     expect(screen.queryByTestId('reveal-caption')).not.toBeInTheDocument();
   });
 
-  it('uses previewOverride instead of the live clock', () => {
-    renderPanel({ startDate: daysFromNow(-20), revealDate: daysFromNow(-1), previewOverride: 50, easing: 'linear' });
+  it('uses the preview instead of the live clock while the panel is being edited', () => {
+    search.editPanel = '7';
+    setPreview(50);
+    renderPanel({ startDate: daysFromNow(-20), revealDate: daysFromNow(-1), easing: 'linear' });
     expect(screen.getByTestId('reveal-countdown')).toHaveTextContent('50% revealed');
     expect(screen.getByTestId('mode')).toHaveAttribute('data-p', '0.5');
+  });
+
+  it('follows the schedule again once the panel editor is closed', () => {
+    search.editPanel = '7';
+    setPreview(100);
+    delete search.editPanel;
+    renderPanel({ startDate: daysFromNow(-1), revealDate: daysFromNow(1), easing: 'linear' });
+    expect(screen.getByTestId('mode')).toHaveAttribute('data-p', '0.5');
+  });
+
+  it('does not apply one panel\'s preview while another panel is being edited', () => {
+    search.editPanel = '7';
+    setPreview(100);
+    search.editPanel = '8';
+    renderPanel({ startDate: daysFromNow(-1), revealDate: daysFromNow(1), easing: 'linear' });
+    expect(screen.getByTestId('mode')).toHaveAttribute('data-p', '0.5');
+  });
+
+  it('ignores a preview saved in the dashboard JSON, in view mode and in the editor', () => {
+    const saved = { startDate: daysFromNow(-1), revealDate: daysFromNow(1), previewOverride: 100 };
+    const view = renderPanel({ ...saved, easing: 'linear' });
+    expect(screen.getByTestId('mode')).toHaveAttribute('data-p', '0.5');
+    view.unmount();
+    search.editPanel = '7';
+    renderPanel({ ...saved, easing: 'linear' });
+    expect(screen.getByTestId('mode')).toHaveAttribute('data-p', '0.5');
+  });
+
+  it('keeps expiry and hidden repeat periods for viewers despite a saved preview', () => {
+    const expired = renderPanel({
+      startDate: daysFromNow(-20),
+      revealDate: daysFromNow(-10),
+      expireDate: daysFromNow(-1),
+      previewOverride: 100,
+    });
+    expect(screen.getByTestId('reveal-expired')).toBeInTheDocument();
+    expired.unmount();
+    // Shown for 10 s from half past each hour; NOW is 12:00:00, so the panel is between cycles.
+    renderPanel({
+      repeat: { enabled: true, every: '1h', showFor: '10s', offset: '30m' },
+      previewOverride: 100,
+    });
+    expect(screen.getByTestId('reveal-hidden')).toBeInTheDocument();
   });
 
   it('hides the footer when showCountdown is off', () => {
@@ -174,6 +223,13 @@ describe('RevealPanel', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
+  it('keeps a typed start date that is not before the reveal date instead of resetting it', () => {
+    search.editPanel = '3';
+    const onChange = jest.fn();
+    renderPanel({ revealDate: daysFromNow(1), startDate: daysFromNow(2) }, onChange);
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   it('re-stamps startDate when the reveal date is changed in the editor', () => {
     search.editPanel = '3';
     const onChange = jest.fn();
@@ -226,6 +282,152 @@ describe('RevealPanel', () => {
     const { container } = renderPanel({ mode: 'instant', revealDate: daysFromNow(-1), background: '#123456' });
     const stage = container.querySelector('[data-testid="mode"]')!.parentElement!;
     expect(stage.style.background).toBe('rgb(18, 52, 86)');
+  });
+
+  describe('dashboard time source', () => {
+    const DAY = 86_400_000;
+    const MIN = 60_000;
+    const dashboard = { timeSource: 'dashboard' as const, easing: 'linear' as const };
+
+    it('does not reveal early when the dashboard range ends in the future', () => {
+      renderPanel(
+        { ...dashboard, startDate: daysFromNow(-1), revealDate: daysFromNow(1), caption: 'Ta-da' },
+        undefined,
+        NOW + 10 * DAY
+      );
+      expect(screen.getByTestId('mode')).toHaveAttribute('data-p', '0.5');
+      expect(screen.queryByTestId('reveal-caption')).not.toBeInTheDocument();
+      expect(screen.getByTestId('reveal-countdown')).toHaveTextContent('50% revealed');
+    });
+
+    it('shows the earlier state when the dashboard range ends in the past', () => {
+      // Really revealed a day ago; the range ends halfway through the 8-day window.
+      renderPanel({ ...dashboard, startDate: daysFromNow(-9), revealDate: daysFromNow(-1) }, undefined, NOW - 5 * DAY);
+      expect(screen.getByTestId('mode')).toHaveAttribute('data-p', '0.5');
+    });
+
+    it('stays expired when the dashboard range ends before the expiry', () => {
+      renderPanel(
+        { ...dashboard, startDate: daysFromNow(-9), revealDate: daysFromNow(-5), expireDate: daysFromNow(-1) },
+        undefined,
+        NOW - 3 * DAY
+      );
+      expect(screen.getByTestId('reveal-expired')).toBeInTheDocument();
+      expect(screen.queryByTestId('mode')).not.toBeInTheDocument();
+      expect(screen.getByTestId('reveal-countdown')).toHaveTextContent(/Expired/);
+    });
+
+    it('expires on the real clock while looking at an older range', () => {
+      const spy = jest.spyOn(global, 'setInterval');
+      renderPanel(
+        {
+          ...dashboard,
+          startDate: daysFromNow(-9),
+          revealDate: daysFromNow(-5),
+          expireDate: new Date(NOW + 10 * MIN).toISOString(),
+        },
+        undefined,
+        NOW - 3 * DAY
+      );
+      expect(screen.getByTestId('mode')).toHaveAttribute('data-p', '1');
+      expect(screen.getByTestId('reveal-countdown')).toHaveTextContent(/expires in 10m 0s/);
+      expect(spy).toHaveBeenLastCalledWith(expect.any(Function), 1000);
+      act(() => {
+        jest.advanceTimersByTime(10 * MIN);
+      });
+      expect(screen.getByTestId('reveal-expired')).toBeInTheDocument();
+      spy.mockRestore();
+    });
+
+    it('cannot skip a hidden repeat period with a future dashboard range', () => {
+      // Shown for 10 s from half past each hour; NOW is 12:00:00 and the range ends at 12:30:05.
+      renderPanel(
+        { ...dashboard, repeat: { enabled: true, every: '1h', showFor: '10s', offset: '30m' } },
+        undefined,
+        NOW + 30 * MIN + 5000
+      );
+      expect(screen.getByTestId('reveal-hidden')).toBeInTheDocument();
+      expect(screen.queryByTestId('mode')).not.toBeInTheDocument();
+    });
+
+    it('cannot bring back a past shown period of a repeat schedule with an older range', () => {
+      // Shown for 10 s from half past each hour; NOW is 12:00:00 and the range ends at 11:30:05.
+      renderPanel(
+        { ...dashboard, repeat: { enabled: true, every: '1h', showFor: '10s', offset: '30m' } },
+        undefined,
+        NOW - 30 * MIN + 5000
+      );
+      expect(screen.getByTestId('reveal-hidden')).toBeInTheDocument();
+      expect(screen.queryByTestId('mode')).not.toBeInTheDocument();
+    });
+
+    it('ticks on the real clock while capped, reveals on time, then stops at the end of the range', () => {
+      const setSpy = jest.spyOn(global, 'setInterval');
+      renderPanel(
+        {
+          ...dashboard,
+          startDate: new Date(NOW - 10 * MIN).toISOString(),
+          revealDate: new Date(NOW + 10 * MIN).toISOString(),
+        },
+        undefined,
+        NOW + DAY
+      );
+      expect(screen.getByTestId('mode')).toHaveAttribute('data-p', '0.5');
+      expect(setSpy).toHaveBeenLastCalledWith(expect.any(Function), 1000);
+      act(() => {
+        jest.advanceTimersByTime(5 * MIN);
+      });
+      expect(screen.getByTestId('mode')).toHaveAttribute('data-p', '0.75');
+      act(() => {
+        jest.advanceTimersByTime(5 * MIN);
+      });
+      expect(screen.getByTestId('mode')).toHaveAttribute('data-p', '1');
+      expect(jest.getTimerCount()).toBe(0);
+      setSpy.mockRestore();
+    });
+
+    it('stops ticking once the real clock passes the end of the dashboard range', () => {
+      renderPanel({ ...dashboard, startDate: daysFromNow(-1), revealDate: daysFromNow(1) }, undefined, NOW + MIN);
+      act(() => {
+        jest.advanceTimersByTime(0);
+      });
+      expect(jest.getTimerCount()).toBe(1);
+      act(() => {
+        jest.advanceTimersByTime(2 * MIN);
+      });
+      expect(jest.getTimerCount()).toBe(0);
+    });
+
+    it('measures the cap against the present when the dashboard range is refreshed', () => {
+      const options: RevealOptions = {
+        ...DEFAULT_OPTIONS,
+        ...dashboard,
+        image: PNG,
+        startDate: new Date(NOW - 10 * MIN).toISOString(),
+        revealDate: new Date(NOW + 10 * MIN).toISOString(),
+      };
+      const mk = (to: number) =>
+        ({
+          options,
+          width: 400,
+          height: 300,
+          timeRange: { from: dateTime(to - 3600_000), to: dateTime(to), raw: { from: 'now-1h', to: 'now' } },
+        }) as unknown as PanelProps<RevealOptions>;
+      const view = render(<RevealPanel {...mk(NOW)} />);
+      act(() => {
+        jest.advanceTimersByTime(0);
+      });
+      expect(jest.getTimerCount()).toBe(0); // a range ending "now" is a fixed moment until the next refresh
+      act(() => {
+        jest.advanceTimersByTime(5 * MIN);
+      });
+      expect(screen.getByTestId('mode')).toHaveAttribute('data-p', '0.5');
+      view.rerender(<RevealPanel {...mk(NOW + 5 * MIN)} />);
+      act(() => {
+        jest.advanceTimersByTime(0);
+      });
+      expect(screen.getByTestId('mode')).toHaveAttribute('data-p', '0.75');
+    });
   });
 
   describe('repeat schedule', () => {

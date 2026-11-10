@@ -1,65 +1,133 @@
-import React from 'react';
-import { StandardEditorProps } from '@grafana/data';
-import { Button, Input, Stack } from '@grafana/ui';
+import React, { useCallback, useMemo } from 'react';
+import { css } from '@emotion/css';
+import { DateTime, dateTime, StandardEditorProps } from '@grafana/data';
+import { Button, DateTimePicker, FieldValidationMessage, useStyles2 } from '@grafana/ui';
 import { RevealOptions } from '../../types';
 
 type Props = StandardEditorProps<string | undefined, {}, RevealOptions>;
 
-/** ISO string -> value for <input type="datetime-local"> in the browser's local time zone. */
-export function toLocalInput(iso?: string): string {
-  if (!iso) {
-    return '';
-  }
-  const t = new Date(iso);
-  if (!Number.isFinite(t.getTime())) {
-    return '';
-  }
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}T${pad(t.getHours())}:${pad(t.getMinutes())}:${pad(t.getSeconds())}`;
-}
-
-/** datetime-local value (local time) -> ISO string, or undefined when empty/invalid. */
-export function fromLocalInput(v: string): string | undefined {
-  if (!v) {
-    return undefined;
-  }
-  const t = new Date(v);
-  return Number.isFinite(t.getTime()) ? t.toISOString() : undefined;
-}
+/** The picker works to the second; a stored value may carry milliseconds (e.g. from "Now"). */
+const sameSecond = (a: number, b: number) => Math.floor(a / 1000) === Math.floor(b / 1000);
 
 /**
- * Date + time editor backed by the native datetime-local input, so typing a time commits on every
- * change (no calendar click needed). Stores an ISO-8601 string.
+ * Date + time editor built on Grafana's own DateTimePicker (calendar popup, hour/minute/second
+ * columns, Apply/Cancel), shown in the browser's local time zone. Stores an ISO-8601 UTC string, or
+ * undefined when cleared.
+ *
+ * A typed value is committed when the field loses focus or on Enter. `onChange` is only called for
+ * a real change: an invalid entry leaves the stored value alone, and re-committing the same moment
+ * is ignored (the panel stamps the start date whenever the reveal date changes).
  */
-export const DateTimeEditor: React.FC<Props> = ({ value, onChange }) => {
-  // datetime-local only emits change events for complete values (or empty), so it can be fully controlled.
-  const commit = (v: string) => {
-    const iso = fromLocalInput(v);
-    if (iso !== undefined || v === '') {
-      onChange(iso);
+export const DateTimeEditor: React.FC<Props> = ({ value, onChange, item, context }) => {
+  const styles = useStyles2(getStyles);
+
+  // A start date that is not before the reveal date cannot be used; say so instead of changing it.
+  const revealMs = context?.options?.revealDate ? Date.parse(context.options.revealDate) : NaN;
+  const startMs = value ? Date.parse(value) : NaN;
+  const startTooLate =
+    item?.id === 'startDate' &&
+    !context?.options?.repeat?.enabled &&
+    Number.isFinite(revealMs) &&
+    Number.isFinite(startMs) &&
+    startMs >= revealMs;
+
+  // Memoised: the picker rewrites its text field whenever the `date` object changes identity, which
+  // would otherwise discard half-typed input on every re-render of the options pane.
+  const date = useMemo(() => {
+    const ms = value ? Date.parse(value) : NaN;
+    return Number.isFinite(ms) ? dateTime(ms) : undefined;
+  }, [value]);
+
+  const commit = useCallback(
+    (next?: DateTime) => {
+      if (!next) {
+        if (value !== undefined) {
+          onChange(undefined);
+        }
+        return;
+      }
+      // The picker accepts anything Grafana can parse as a time (e.g. "now") but hands back an
+      // invalid date for it; never let that replace the stored value.
+      if (!next.isValid()) {
+        return;
+      }
+      const ms = next.valueOf();
+      if (date && sameSecond(ms, date.valueOf())) {
+        return;
+      }
+      onChange(new Date(ms).toISOString());
+    },
+    [value, date, onChange]
+  );
+
+  // The picker only commits typed text on blur: make Enter do the same.
+  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
+      e.target.blur();
+    }
+  };
+
+  // The picker ignores an emptied field; treat deleting the text and leaving as clearing.
+  const onBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    if (e.target instanceof HTMLInputElement && e.target.value.trim() === '' && value !== undefined) {
+      onChange(undefined);
     }
   };
 
   return (
-    <Stack direction="row" gap={0.5}>
-      <Input
-        type="datetime-local"
-        step={1}
-        value={toLocalInput(value)}
-        onChange={(e) => commit(e.currentTarget.value)}
-        aria-label="Date and time"
-      />
-      <Button variant="secondary" size="md" onClick={() => onChange(new Date().toISOString())} tooltip="Set to now">
-        Now
-      </Button>
-      <Button
-        variant="secondary"
-        size="md"
-        icon="times"
-        onClick={() => onChange(undefined)}
-        tooltip="Clear"
-        aria-label="Clear"
-      />
-    </Stack>
+    <div className={styles.wrap}>
+      <div className={styles.row}>
+        <div className={styles.picker} onKeyDown={onKeyDown} onBlur={onBlur}>
+          <DateTimePicker
+            // The picker keeps its own text and does not reset it when the date is removed from
+            // outside, so remount it whenever the value goes between set and empty.
+            key={date ? 'set' : 'empty'}
+            date={date}
+            onChange={commit}
+            showSeconds
+            clearable
+            timeZone="browser"
+          />
+        </div>
+        <Button
+          className={styles.now}
+          variant="secondary"
+          size="md"
+          onClick={() => onChange(new Date().toISOString())}
+          tooltip="Set to now"
+        >
+          Now
+        </Button>
+      </div>
+      {startTooLate && <FieldValidationMessage>The start date must be before the reveal date.</FieldValidationMessage>}
+    </div>
   );
 };
+
+const getStyles = () => ({
+  wrap: css({
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 4,
+    width: '100%',
+  }),
+  row: css({
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 4,
+    width: '100%',
+  }),
+  // The picker sizes its field to the input's intrinsic width, which is wider than the options pane
+  // leaves beside "Now"; make the field wrapper inside it fill the space it is given instead.
+  picker: css({
+    flex: '1 1 0',
+    minWidth: 0,
+    '& [data-testid="date-time-picker"] > div > div': {
+      flex: '1 1 0',
+      minWidth: 0,
+    },
+  }),
+  now: css({
+    flex: '0 0 auto',
+  }),
+});

@@ -36,10 +36,13 @@ that lives on your dashboard.
 rushes to the finish), `easeOut`, `easeInOut`, `steps` (one visible change per whole day;
 recommended for `jigsaw` and `advent` so people come back daily).
 
-Other options: `timeSource` (`browser` clock or dashboard time), `showCountdown`, `caption`
+Other options: `timeSource` (`browser` clock, or dashboard time: the end of the time picker range,
+capped at the real clock so a future range cannot reveal early, with expiry always evaluated
+against the real clock; repeat schedules ignore it and always run on the real clock), `showCountdown`, `caption`
 (shown once fully revealed), `animateBeforeReveal` (GIFs are frozen until 100 % unless enabled,
-because moving frames leak the surprise), and an editor-only `previewOverride` (0-100) to
-inspect any point of the reveal. See [`src/types.ts`](../src/types.ts) for the full option contract
+because moving frames leak the surprise), and an editor-only preview slider (0-100) to
+inspect any point of the reveal; it is held in memory (`src/components/previewStore.ts`) and never
+saved with the dashboard. See [`src/types.ts`](../src/types.ts) for the full option contract
 and [`mockups/ARCHITECTURE.md`](../mockups/ARCHITECTURE.md) for the engine design.
 
 ## Screenshots
@@ -68,12 +71,12 @@ with the Compose v2 plugin (`docker compose`) and GNU make.
 
 ```bash
 make build        # production build -> ./dist   (installs deps into a Docker volume on first run)
-make up           # Grafana 12.x at http://localhost:3000 with ./dist and the demo dashboard mounted
+make up           # Grafana 13.x at http://localhost:3000 with ./dist and the demo dashboard mounted
 ```
 
 Open <http://localhost:3000>. Anonymous access is enabled with the Admin role, so there is no
 login; the provisioned **Reveal demo** dashboard shows four panels (blur, pixelate, jigsaw,
-advent) revealing the same image between 2026-10-01 and 2026-11-01.
+advent) revealing between 2026-10-11 and 2027-01-19 (a 100-day window).
 
 Day-to-day targets:
 

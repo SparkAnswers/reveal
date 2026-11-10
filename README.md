@@ -57,9 +57,9 @@ Reveal is not yet signed by Grafana Labs, so Grafana has to be told to allow it.
 
 ```bash
 docker run -d -p 3000:3000 \
-  -e GF_INSTALL_PLUGINS="https://github.com/SparkAnswers/reveal/releases/download/v1.0.0/sparkanswers-reveal-panel-1.0.0.zip;sparkanswers-reveal-panel" \
+  -e GF_INSTALL_PLUGINS="https://github.com/SparkAnswers/reveal/releases/download/v1.0.1/sparkanswers-reveal-panel-1.0.1.zip;sparkanswers-reveal-panel" \
   -e GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=sparkanswers-reveal-panel \
-  grafana/grafana:12.4.12
+  grafana/grafana:13.3.0
 ```
 
 Grafana Cloud does not accept unsigned plugins; that needs the catalog listing, which is in progress.
@@ -76,7 +76,7 @@ Grafana Cloud does not accept unsigned plugins; that needs the catalog listing, 
 | Expire date                | Optional. After this the image is hidden again                                                                                                                              |
 | Reveal mode                | `Blur` (default), `Pixelate`, `Fade`, `Brightness`, `Color`, `Wipe`, `Iris`, `Blinds`, `Jigsaw`, `Puzzle`, `Shuffle`, `Mosaic`, `Scratch-off`, `Advent`, `Combo`, `Instant` |
 | Easing curve               | `Ease in` (default) keeps the surprise hidden longest; `Steps` reveals in jumps by count or by a **Step interval** such as `1h` or `1d`                                     |
-| Time source                | Browser clock (default) or dashboard time, which lets you scrub with the time picker                                                                                        |
+| Time source                | Browser clock (default) or dashboard time, which follows the time picker to look back at a dated reveal. Never ahead of the real clock; expiry and repeats use real time    |
 | Show countdown             | Footer with time remaining and percent revealed                                                                                                                             |
 | Caption                    | Text shown over the image at 100%                                                                                                                                           |
 | Background                 | Colour behind transparent images and in unrevealed areas                                                                                                                    |
@@ -94,7 +94,7 @@ Grafana Cloud does not accept unsigned plugins; that needs the catalog listing, 
 | Offset           | Shift this panel's cycle. `Every 2m` with offsets `0` and `1m` gives two panels that alternate and are never on together |
 | Chance per cycle | Percent of cycles that show. Seeded, so every viewer sees the same pattern                                               |
 
-**Preview** (editor only): a slider that scrubs the reveal from 0 to 100% without affecting viewers.
+**Preview** (editor only): a slider that scrubs the reveal from 0 to 100% without affecting viewers. It is never saved with the dashboard.
 
 Every seeded order (tiles, doors, scratches, random cycles) derives from the reveal date, so all viewers see the same state. Four demo dashboards ship with the stack: `Reveal demo` (all modes plus even/odd/random schedule panels), `Motorcycle demo` and `Memory demo` (each with a scheduled reveal beside product metrics), and `Ghost demo` (a GIF ghost that pops up in a random corner each minute and waves once revealed).
 
@@ -134,7 +134,7 @@ Frontend only: no backend, no uploads to a server.
 make install     # npm ci inside the node image
 make build       # production bundle -> ./dist
 make check       # typecheck + lint + jest
-make up          # Grafana 12.x with the plugin and demo dashboards
+make up          # Grafana 13.x with the plugin and demo dashboards
 make dev         # webpack watch + livereload
 make validate    # Grafana plugin-validator against a zip of ./dist
 make package     # ./sparkanswers-reveal-panel-<version>.zip

@@ -54,14 +54,21 @@ export function AdventMode({ src, p, width, height, seed, settings, days }: Mode
         const open = n <= opened;
         const next = n === opened + 1;
         return (
-          <TileImage
+          // The door swings outside its cell, so the cell itself must not clip. The image is clipped
+          // by its own inner box instead: an unclipped tile would show the whole image through it.
+          <div
             key={t.index}
-            src={src}
-            width={width}
-            height={height}
-            tile={t}
-            style={{ transformStyle: 'preserve-3d', overflow: 'visible' }}
+            data-testid="advent-cell"
+            style={{
+              position: 'absolute',
+              left: t.x,
+              top: t.y,
+              width: t.w,
+              height: t.h,
+              transformStyle: 'preserve-3d',
+            }}
           >
+            <TileImage src={src} width={width} height={height} tile={t} style={{ left: 0, top: 0 }} />
             <div
               style={{
                 position: 'absolute',
@@ -84,7 +91,7 @@ export function AdventMode({ src, p, width, height, seed, settings, days }: Mode
             >
               {extra ? '' : num}
             </div>
-          </TileImage>
+          </div>
         );
       })}
     </Stage>

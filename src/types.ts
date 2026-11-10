@@ -108,7 +108,11 @@ export interface RevealOptions {
   background?: string;
   /** Animated GIFs only play once fully revealed (otherwise frames leak the surprise). */
   animateBeforeReveal: boolean;
-  /** Editor-only: when set (0..100) the preview shows this progress instead of the live value. */
+  /**
+   * Legacy and ignored. 1.0.0 stored the preview slider here, which leaked into saved dashboards.
+   * The preview now lives in memory only (src/components/previewStore.ts); this path remains solely
+   * as the anchor for the Preview editor in the options pane and is never written.
+   */
   previewOverride?: number | null;
 }
 
@@ -119,7 +123,6 @@ export const DEFAULT_OPTIONS: RevealOptions = {
   timeSource: 'browser',
   showCountdown: true,
   animateBeforeReveal: false,
-  previewOverride: null,
 };
 
 /** Upload guard rails (base64-encoded size). */

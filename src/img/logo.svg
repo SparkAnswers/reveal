@@ -1,12 +1,94 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
-  <!-- Reveal: an eye behind a curtain being drawn back -->
-  <rect x="4" y="4" width="56" height="56" rx="10" fill="#1F2430"/>
-  <path d="M8 32c6-9 14-14 24-14s18 5 24 14c-6 9-14 14-24 14S14 41 8 32z" fill="#F8FAFC" opacity=".92"/>
-  <circle cx="32" cy="32" r="8.5" fill="#3D71D9"/>
-  <circle cx="32" cy="32" r="3.5" fill="#0B0C0E"/>
-  <circle cx="35.5" cy="28.5" r="1.8" fill="#F8FAFC"/>
-  <path d="M4 14C4 8.5 8.5 4 14 4h12v56H14C8.5 60 4 55.5 4 50V14z" fill="#E0B400"/>
-  <path d="M26 4v56c-4-5-6-14-6-28s2-23 6-28z" fill="#C49A00"/>
-  <path d="M10 4v56M18 4v56" stroke="#C49A00" stroke-width="1.5" opacity=".6"/>
-  <path d="M8 30h24v4H8z" fill="#E0B400"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="216 250 1486 1486" width="256" height="256">
+  <defs>
+    <clipPath id="frame">
+      <rect x="216" y="250" width="1486" height="1486" rx="150"/>
+    </clipPath>
+    <clipPath id="door">
+      <rect x="216" y="350" width="749" height="1286"/>
+    </clipPath>
+    <clipPath id="opening">
+      <rect x="965" y="250" width="737" height="1486"/>
+    </clipPath>
+    <path id="body" d="M965,600 C1040,610 1150,600 1230,610 C1420,630 1540,760 1540,920 C1540,1060 1470,1150 1420,1190 C1385,1240 1380,1400 1370,1470 C1350,1560 1300,1610 1250,1636 L965,1636 Z"/>
+    <clipPath id="bodyClip"><use href="#body"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#frame)">
+    <!-- doorway: transparent -->
+
+    <!-- penguin (behind the door) -->
+    <g clip-path="url(#opening)">
+      <g transform="translate(965 1736) scale(1.1) translate(-965 -1636)">
+      <use href="#body" fill="#363c4b"/>
+
+      <!-- white face -->
+      <path fill="#ffffff" d="M965,700 C1010,665 1120,665 1155,760 C1170,820 1195,858 1250,850 C1310,805 1445,815 1470,940 C1490,1060 1400,1140 1290,1160 C1180,1180 1060,1200 965,1205 Z"/>
+      <!-- white belly -->
+      <path fill="#ffffff" d="M965,1400 L1185,1420 C1150,1520 1080,1590 990,1592 L965,1592 Z"/>
+
+      <!-- cheeks -->
+      <ellipse cx="985" cy="878" rx="40" ry="32" fill="#f0b7c0"/>
+      <ellipse cx="1345" cy="1052" rx="48" ry="32" fill="#f0b7c0"/>
+
+      <!-- eyes -->
+      <circle cx="1050" cy="806" r="47" fill="#262a35"/>
+      <circle cx="1067" cy="796" r="14" fill="#ffffff"/>
+      <circle cx="1355" cy="950" r="47" fill="#262a35"/>
+      <circle cx="1371" cy="938" r="14" fill="#ffffff"/>
+
+      <!-- beak -->
+      <path fill="#c87536" stroke="#c87536" stroke-width="16" stroke-linejoin="round" d="M1090,888 L1192,872 L1258,960 L1138,1018 Z"/>
+      <path fill="#9a5a3a" d="M1102,908 C1125,925 1150,945 1165,958 C1195,962 1225,966 1244,972 C1210,990 1175,1002 1148,1008 C1125,975 1110,940 1102,908 Z"/>
+
+      <!-- helmet -->
+      <path fill="#9e7a4a" d="M965,560 C1010,480 1120,433 1240,433 C1420,433 1580,560 1610,760 C1622,830 1612,878 1600,882 C1560,950 1532,1050 1522,1150 C1516,1200 1534,1268 1500,1272 C1462,1276 1460,1230 1470,1150 C1480,1050 1510,980 1505,900 C1440,830 1340,760 1200,645 C1100,625 1010,625 965,632 Z"/>
+      <!-- helmet strap -->
+      <path fill="none" stroke="#574330" stroke-width="78" stroke-linecap="butt" d="M965,520 C1060,488 1150,494 1240,512"/>
+      <path fill="none" stroke="#574330" stroke-width="72" stroke-linecap="round" d="M1460,630 C1530,690 1590,780 1606,858"/>
+
+      <!-- translucent door edge -->
+      <rect x="965" y="350" width="55" height="1286" fill="#c9cad4" opacity="0.5" clip-path="url(#bodyClip)"/>
+      </g>
+    </g>
+
+    <!-- door -->
+    <rect x="216" y="250" width="749" height="1486" fill="#e9bd00"/>
+    <rect x="340" y="379" width="458" height="521" rx="6" fill="none" stroke="#c39600" stroke-width="24"/>
+    <rect x="340" y="1086" width="458" height="521" rx="6" fill="none" stroke="#c39600" stroke-width="24"/>
+    <!-- handle -->
+    <rect x="849" y="886" width="67" height="213" rx="24" fill="#b88f00"/>
+    <rect x="743" y="951" width="125" height="39" rx="19.5" fill="#b88f00"/>
+
+    <g transform="translate(965 1736) scale(1.1) translate(-965 -1636)">
+    <!-- wing shadow on door -->
+    <path clip-path="url(#door)" fill="#c39600" d="M848,1290 C870,1270 1000,1270 1200,1250 L1200,1490 C1100,1470 980,1440 900,1390 C860,1360 840,1320 848,1290 Z"/>
+    <!-- wing -->
+    <path fill="#363c4b" d="M850,1262 C868,1240 1000,1240 1200,1222 L1340,1205 L1330,1440 C1260,1452 1190,1446 1100,1428 C985,1395 845,1325 850,1262 Z"/>
+    <!-- belly peek under wing on door edge -->
+    <path fill="#c9cad4" opacity="0.5" d="M965,1385 C1040,1415 1110,1432 1180,1432 C1170,1460 1160,1475 1150,1478 C1080,1476 1020,1465 965,1450 Z"/>
+    <path fill="#ffffff" d="M1020,1404 C1080,1424 1130,1432 1180,1432 C1170,1460 1160,1475 1150,1478 C1100,1477 1060,1472 1020,1466 Z"/>
+  <g transform="translate(1336 597)">
+    <circle r="157" fill="#7d5c38"/>
+    <circle r="122" fill="#a8a8ac"/>
+    <circle r="110" fill="#ffffff"/>
+    <g stroke="#484b55" stroke-width="9" stroke-linecap="round">
+      <line x1="0" y1="-95" x2="0" y2="-78"/>
+      <line x1="0" y1="-95" x2="0" y2="-78" transform="rotate(30)"/>
+      <line x1="0" y1="-95" x2="0" y2="-78" transform="rotate(60)"/>
+      <line x1="0" y1="-95" x2="0" y2="-78" transform="rotate(90)"/>
+      <line x1="0" y1="-95" x2="0" y2="-78" transform="rotate(120)"/>
+      <line x1="0" y1="-95" x2="0" y2="-78" transform="rotate(150)"/>
+      <line x1="0" y1="-95" x2="0" y2="-78" transform="rotate(180)"/>
+      <line x1="0" y1="-95" x2="0" y2="-78" transform="rotate(210)"/>
+      <line x1="0" y1="-95" x2="0" y2="-78" transform="rotate(240)"/>
+      <line x1="0" y1="-95" x2="0" y2="-78" transform="rotate(270)"/>
+      <line x1="0" y1="-95" x2="0" y2="-78" transform="rotate(300)"/>
+      <line x1="0" y1="-95" x2="0" y2="-78" transform="rotate(330)"/>
+      <line x1="0" y1="0" x2="30" y2="-58" stroke-width="11"/>
+      <line x1="0" y1="0" x2="52" y2="27" stroke-width="13"/>
+    </g>
+    <circle r="12" fill="#484b55"/>
+  </g>
+    </g>
+  </g>
 </svg>

@@ -1,6 +1,6 @@
 # Reveal panel plugin - everything runs in Docker; never run npm on the host.
 #
-#   docker compose up          -> builds the plugin (`build` service) then starts Grafana 12.x
+#   docker compose up          -> builds the plugin (`build` service) then starts Grafana 13.x
 #                                 with ./dist and ./provisioning mounted  (same as `make up`)
 #   make build / dev / test / typecheck / lint / validate / package
 #                              -> the Node tool services below (profile "tools", so a plain
@@ -29,10 +29,10 @@ services:
       service: grafana
     build:
       args:
-        # Scaffold base defaults to grafana-enterprise 13.1.0; pin to a 12.x tag that exists on
-        # Docker Hub and satisfies plugin.json grafanaDependency >=12.3.0.
+        # Current Grafana 13 (the plugin is built against the 13.1 SDK). plugin.json supports
+        # >=12.3.0; test the oldest supported line with `GRAFANA_VERSION=12.4.12 make up`.
         grafana_image: ${GRAFANA_IMAGE:-grafana}
-        grafana_version: ${GRAFANA_VERSION:-12.4.12}
+        grafana_version: ${GRAFANA_VERSION:-13.3.0}
     environment:
       # Images live inside dashboard JSON and every saved version keeps a copy; keep history short.
       GF_DASHBOARDS_VERSIONS_TO_KEEP: '5'
